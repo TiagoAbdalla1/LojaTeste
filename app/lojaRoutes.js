@@ -1,6 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const Loja = require('./lojaModel');
+const axios = require('axios');
+
+router.use(async (req, res, next) => {
+  if ((req.method === 'POST' || req.method === 'PUT') && req.body.cep) {
+    try {
+      const { data } = await axios.get(`https://viacep.com.br/ws/${req.body.cep}/json`);
+      req.body.endereco = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+    } catch (err) {
+      console.error('Erro ao obter endereço a partir do CEP', err);
+    }
+  }
+  next();
+});
 
 router.get('/', async (req, res) => {
   const lojas = await Loja.find();
